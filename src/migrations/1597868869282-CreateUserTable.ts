@@ -20,7 +20,9 @@ export class CreateUserTable1597868869282 implements MigrationInterface {
 				},
 				{
 					name: 'location',
-					type: 'point',
+					type: 'geography',
+					spatialFeatureType: 'Point',
+					srid: 4326 
 				}
 			]
 		}));
