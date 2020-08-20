@@ -5,16 +5,9 @@
    "username": "test",
    "password": "test",
    "database": "test",
-   "synchronize": true,
-   "logging": false,
-   "entities": [
-      "src/entities/*.js"
-   ],
-   "migrations": [
-      "src/migrations/*.js"
-   ],
+   "entities": ["src/entities/*.ts"],
+   "migrations": ["src/migrations/*.ts"],
    "cli": {
-      "entitiesDir": "src/entities",
       "migrationsDir": "src/migrations"
    }
 }
