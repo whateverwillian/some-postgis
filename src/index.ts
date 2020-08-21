@@ -5,7 +5,6 @@ import {
   createConnection,
   getRepository,
   Repository,
-  createQueryBuilder,
 } from 'typeorm';
 
 import User from './entities/User';
@@ -68,19 +67,21 @@ app.get('/users', async (req, res) => {
     if (!user)
       throw new Error('The user does not exist')
 
-    const distances = await userRepository
-      .query(
-        'select username, ST_Distance(u.location, me.location) as distance ' + 
-        `from users as u, lateral(select id, location from users where username='${username}') as me ` +
-        `where u.id <> me.id ${
-          radius ? 
-          `and ST_Distance(u.location, me.location) < ${radius} order by distance` 
-          : 
-          'order by distance'
-        };`
-      )
+    const parameters = radius ? [username, radius] : [username];
+    const sql = `${
+      radius ? 
+      'SELECT username, ST_Distance(users.location, me.location) AS distance ' + 
+      'FROM users, LATERAL(SELECT id, location FROM users WHERE username=$1) AS me ' +
+      'WHERE users.id <> me.id and ST_Distance(users.location, me.location) < $2 order by distance'
+      :
+      'SELECT username, ST_Distance(users.location, me.location) AS distance ' + 
+      'FROM users, LATERAL(SELECT id, location FROM users WHERE username=$1) AS me ' +
+      'WHERE users.id <> me.id order by distance'
+    }`
 
-      res.json(distances);
+    const distances = await userRepository.query(sql, parameters);
+
+    res.json(distances);
   } catch (err) {
     console.error(err);
     res.status(400).json({ message: err.message });  
