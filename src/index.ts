@@ -38,15 +38,11 @@ app.post('/users', async (req, res) => {
     if (!username || !latitude || !longitude)
       throw new Error('Please provide username, latitude and longitude')
 
-    await userRepository
-      .createQueryBuilder()
-      .insert()
-      .into(User)
-      .values({
-        username,
-        location: `point(${longitude} ${latitude})`
-      })
-      .execute()
+    await userRepository.query(
+      'INSERT INTO users (username, location)' +
+      'VALUES ($1, ST_SetSRID(ST_MakePoint($2, $3), 4326));',
+      [username, longitude, latitude]
+    )
 
     res.json({ message: 'User created' })
   } catch (err) {
