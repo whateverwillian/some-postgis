@@ -64,17 +64,11 @@ app.get('/users', async (req, res) => {
       throw new Error('The user does not exist')
 
     const parameters = radius ? [username, radius] : [username];
-    const sql = `${
-      radius ? 
-      'SELECT username, ST_Distance(users.location, me.location) AS distance ' + 
-      'FROM users, LATERAL(SELECT id, location FROM users WHERE username=$1) AS me ' +
-      'WHERE users.id <> me.id and ST_Distance(users.location, me.location) < $2 order by distance'
-      :
-      'SELECT username, ST_Distance(users.location, me.location) AS distance ' + 
-      'FROM users, LATERAL(SELECT id, location FROM users WHERE username=$1) AS me ' +
-      'WHERE users.id <> me.id order by distance'
-    }`
-
+    const sql = `
+      SELECT username, ST_Distance(users.location, me.location) AS distance 
+      FROM users, LATERAL(SELECT id, location FROM users WHERE username=$1) AS me 
+      WHERE users.id <> me.id ${radius ? 'and ST_Distance(users.location, me.location) < $2' : ''} order by distance
+    `
     const distances = await userRepository.query(sql, parameters);
 
     res.json(distances);
